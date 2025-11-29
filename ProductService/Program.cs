@@ -1,10 +1,18 @@
-using Microsoft.EntityFrameworkCore;
+using Infrastructure.Extensions;
+using Microsoft.AspNetCore.CookiePolicy;
 using ProductService.API.Extensions;
 using ProductService.API.Middlewares;
-using ProductService.BLL;
-using ProductService.DAL;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddEnvironmentVariables();
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Configure(builder.Configuration.GetSection("Kestrel"));
+});
+
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddProductServices(builder.Configuration);
 
@@ -17,16 +25,20 @@ var app = builder.Build();
 //Add exception handler to middlewares
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseCookiePolicy(new CookiePolicyOptions
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    HttpOnly = HttpOnlyPolicy.Always,
+    MinimumSameSitePolicy = SameSiteMode.Strict,
+    Secure = CookieSecurePolicy.Always
+});
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
 
 app.MapControllers();
 

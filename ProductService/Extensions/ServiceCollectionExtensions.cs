@@ -18,7 +18,7 @@ namespace ProductService.API.Extensions
             // Регистрируем DbContext
             services.AddDbContext<ProductDbContext>(opt =>
             {
-                opt.UseSqlServer(configuration.GetConnectionString("ProductDb"));
+                opt.UseSqlServer(configuration.GetConnectionString("ProductsDb"));
             });
             
             // Регистрируем репозитории

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ProductService.Contracts.DTOs
 {
@@ -14,14 +11,10 @@ namespace ProductService.Contracts.DTOs
         [MaxLength(2000)]
         public string Description { get; set; }
         [Required]
-        public DateOnly CreatedDate { get; set; }
-        [Required]
         [Range(0, int.MaxValue)]
         public int Count { get; set; }
         [Required]
         [Range(0, double.MaxValue)]
         public decimal Price { get; set; }
-        [Required]
-        public int OwnerId { get; set; }
     }
 }

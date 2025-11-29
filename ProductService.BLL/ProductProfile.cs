@@ -1,10 +1,7 @@
 ﻿using AutoMapper;
 using ProductService.Contracts.DTOs;
 using ProductService.DAL.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
-    
+
 namespace ProductService.BLL
 {
     public class ProductProfile : Profile

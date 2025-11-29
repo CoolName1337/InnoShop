@@ -1,41 +1,84 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
+using UserService.Contracts.DTOs;
+using UserService.Contracts.Interfaces;
 
 namespace UserService.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UserController(IUserService userService, LinkGenerator linkGenerator) : ControllerBase
     {
-        // GET: api/<UserController>
-        [HttpGet]
-        public IEnumerable<string> Get()
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterUserDTO registerUser, CancellationToken ct)
         {
-            return new string[] { "value1", "value2" };
+            var userDto = await userService.Register(registerUser, ct);
+
+            await SendConfirmation(userDto.Email, ct);
+
+            return Created();
+        }
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginUserDTO loginUser, CancellationToken ct)
+        {
+            var token = await userService.Login(loginUser, ct);
+
+            HttpContext.Response.Cookies.Append("nyam-nyam", token);
+
+            return Ok();
         }
 
-        // GET api/<UserController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpPost("send-confirmation")]
+        public async Task<IActionResult> SendConfirmation(string email, CancellationToken ct)
         {
-            return "value";
+            var link = linkGenerator.GetUriByAction(
+                httpContext: HttpContext,
+                action: "ConfirmEmail",
+                controller: "User"
+                );
+
+            await userService.SendConfirmationEmail(link, email, ct);
+
+            return Ok("Confirmation email sent");
         }
 
-        // POST api/<UserController>
-        [HttpPost]
-        public void Post([FromBody] string value)
+        [HttpGet("send-recovery")]
+        public async Task<IActionResult> SendRecovery(string toEmail, CancellationToken ct)
         {
+            var link = linkGenerator.GetUriByAction(
+                httpContext: HttpContext,
+                action: "ResetPassword",
+                controller: "User"
+                );
+            await userService.SendRecoveryEmail(link, toEmail, ct);
+
+            return Ok();
+        }
+        [HttpGet("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail(string token, CancellationToken ct)
+        {
+            await userService.ConfirmEmail(token, ct);
+
+            return Ok("Email confirmed");
+
         }
 
-        // PUT api/<UserController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO resetPassword, CancellationToken ct)
         {
+            await userService.ResetPassword(resetPassword, ct);
+
+            return Ok("Password reset");
         }
 
-        // DELETE api/<UserController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAll(CancellationToken ct)
         {
+            var users = await userService.GetAllAsync(ct);
+
+            return Ok(users);
         }
     }
 }

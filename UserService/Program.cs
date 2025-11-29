@@ -1,24 +1,49 @@
+using Infrastructure.Extensions;
+using Microsoft.AspNetCore.CookiePolicy;
+using UserService.API.Extensions;
+using UserService.API.Middlewares;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Configuration.AddEnvironmentVariables();
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Configure(builder.Configuration.GetSection("Kestrel"));
+});
+
+builder.Services.AddMyHttpClient(builder.Configuration);
+
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
+builder.Services.AddEmailService(builder.Configuration);
+
+builder.Services.AddUserServices(builder.Configuration);
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseMiddleware<ExceptionHadlerMiddleware>();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseCookiePolicy(new CookiePolicyOptions
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    HttpOnly = HttpOnlyPolicy.Always,
+    MinimumSameSitePolicy = SameSiteMode.Strict,
+    Secure = CookieSecurePolicy.Always
+});
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
 
 app.MapControllers();
 

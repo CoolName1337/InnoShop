@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using ProductService.API.Extensions;
 using ProductService.Contracts.DTOs;
 using ProductService.Contracts.Interfaces;
-using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -9,11 +10,11 @@ namespace ProductService.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductController(IProductService productService) : ControllerBase
+    public class ProductController(IProductService productService, ILogger<ProductController> logger) : ControllerBase
     {
         /// <summary>Возвращает все продукты.</summary>
         [HttpGet]
-        public async Task<ActionResult<List<ProductDTO>>> GetAllAsync(CancellationToken ct)
+        public async Task<IActionResult> GetAllAsync(CancellationToken ct)
         {
             var res = await productService.GetAllAsync(ct);
             return Ok(res);
@@ -21,34 +22,74 @@ namespace ProductService.API.Controllers
 
         /// <summary>Возвращает продукт по ID.</summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProductDTO>> GetAsync(int id, CancellationToken ct)
+        public async Task<IActionResult> GetAsync(int id, CancellationToken ct)
         {
             var res = await productService.GetByIdAsync(id, ct);
+            return Ok(res);
+        }   
+        [HttpGet("/{ownerId}")]
+        public async Task<IActionResult> GetByOwnerId([FromRoute] int ownerId, CancellationToken ct)
+        {
+            var res = await productService.GetByOwnerIdAsync(ownerId, ct);
+
             return Ok(res);
         }
 
         /// <summary>Создаёт новый продукт.</summary>
         [HttpPost]
-        public async Task<ActionResult<ProductDTO>> PostAsync([FromBody] CreateProductDTO createProductDTO, CancellationToken ct)
+        [Authorize]
+        public async Task<IActionResult> PostAsync([FromBody] CreateProductDTO createProductDTO, CancellationToken ct)
         {
-            var res = await productService.CreateAsync(createProductDTO, ct);
-            return CreatedAtAction(nameof(GetAsync), new { id = res.Id }, res);
+            if (User.TryGetUserId(out int userId))
+            {
+                var res = await productService.CreateAsync(createProductDTO, userId, ct);
+                return Created();
+            }
+            else
+            {
+                return Unauthorized("Missing or invalid userId claim");
+            }
         }
 
         /// <summary>Обновляет продукт.</summary>
         [HttpPatch]
-        public async Task<ActionResult<ProductDTO>> PatchAsync([FromBody] UpdateProductDTO updateProductDTO, CancellationToken ct)
+        [Authorize]
+        public async Task<IActionResult> PatchAsync([FromBody] UpdateProductDTO updateProductDTO, CancellationToken ct)
         {
-            var res = await productService.UpdateAsync(updateProductDTO, ct);
-            return Ok(res);
+            if (User.TryGetUserId(out int userId))
+            {
+                var res = await productService.UpdateAsync(updateProductDTO, userId, ct);
+                return Ok(res);
+            }
+            else
+            {
+                return Unauthorized("Missing or invalid userId claim");
+            }
         }
 
         /// <summary>Удаляет продукт по ID.</summary>
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id, CancellationToken ct)
+        [Authorize]
+        public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            await productService.DeleteAsync(id, ct);
-            return NoContent();
+            if (User.TryGetUserId(out int userId))
+            {
+                await productService.DeleteAsync(id, userId, ct);
+                return NoContent();
+            }
+            else
+            {
+                return Unauthorized("Missing or invalid userId claim");
+            }
+        }
+
+        [HttpPost("admin/soft-delete/{ownerId}&{isDeleted}")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> SetDeleted(int ownerId, bool isDeleted, CancellationToken ct)
+        {
+            var connectedProductIds = await productService.SetDeletedByOwnerIdAsync(ownerId, isDeleted, ct);
+
+            return Ok(connectedProductIds);
         }
     }
 }

@@ -30,10 +30,10 @@ namespace ProductService.DAL.Repositories
             if (!includeDeleted)
                 query = query.Where(pr => !pr.IsDeleted);
 
-            return await query.ToListAsync(cancellationToken);
+            return await query.AsNoTracking().ToListAsync(cancellationToken);
         }
 
-        public async Task<List<Product>> GetAllByFilterAsync(ProductFilter productFilter, CancellationToken cancellationToken)
+        public async Task<List<Product>> GetByFilterAsync(ProductFilter productFilter, CancellationToken cancellationToken)
         {
             var query = db.Products.AsQueryable();
 
@@ -51,12 +51,12 @@ namespace ProductService.DAL.Repositories
             if (productFilter.ToDate is DateOnly toDate)
                 query = query.Where(pr => pr.CreatedDate <= toDate);
 
-            return await query.ToListAsync(cancellationToken);
+            return await query.AsNoTracking().ToListAsync(cancellationToken);
         }
 
         public async Task<Product?> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
-            return await db.Products.FindAsync(id, cancellationToken);
+            return await db.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
         }
 
         public async Task<Product> UpdateAsync(Product product, CancellationToken cancellationToken)
@@ -80,7 +80,7 @@ namespace ProductService.DAL.Repositories
         public async Task<(List<Product>, int)> GetPagedAsync(
             int pageNumber, int pageSize, CancellationToken cancellationToken, bool includeDeleted = false)
         {
-            var query = db.Products.AsQueryable();
+            var query = db.Products.AsNoTracking();
 
             if(!includeDeleted)
                 query = query.Where((p) => !p.IsDeleted);
@@ -94,6 +94,11 @@ namespace ProductService.DAL.Repositories
                 .ToListAsync(cancellationToken);
 
             return (products, totalCount);
+        }
+
+        public async Task<List<Product>> GetByOwnerIdAsync(int id, CancellationToken ct)
+        {
+            return await db.Products.Where(p => p.OwnerId == id).AsNoTracking().ToListAsync(ct);
         }
     }
 }

@@ -10,7 +10,7 @@ namespace ProductService.DAL.Entities
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         public DateOnly CreatedDate { get; set; }
         public int Count { get; set; }
         public decimal Price { get; set; }
