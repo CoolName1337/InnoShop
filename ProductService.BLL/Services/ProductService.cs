@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using ProductService.BLL.Exceptions;
 using ProductService.Contracts.DTOs;
 using ProductService.Contracts.Interfaces;
+using ProductService.DAL.Domain;
 using ProductService.DAL.Entities;
 using ProductService.DAL.Interfaces;
 
@@ -194,6 +195,13 @@ namespace ProductService.BLL.Services
             }
 
             return products.Select(pr => pr.Id).ToList();
+        }
+
+        public async Task<List<ProductDTO>> GetByFilterAsync(FilterProductDTO filterProduct, CancellationToken ct)
+        {
+            var res = await productRepository.GetByFilterAsync(mapper.Map<ProductFilter>(filterProduct), ct);
+
+            return mapper.Map<List<ProductDTO>>(res);
         }
     }
 }

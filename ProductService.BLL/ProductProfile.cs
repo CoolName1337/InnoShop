@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ProductService.Contracts.DTOs;
+using ProductService.DAL.Domain;
 using ProductService.DAL.Entities;
 
 namespace ProductService.BLL
@@ -12,8 +13,10 @@ namespace ProductService.BLL
 
             CreateMap<CreateProductDTO, Product>();
 
+            CreateMap<FilterProductDTO, ProductFilter>();
+
             CreateMap<UpdateProductDTO, Product>()
-                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null)); ;
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
         }
 
     }

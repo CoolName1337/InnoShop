@@ -11,20 +11,24 @@ namespace Infrastructure
 {
     public class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
     {
+        public async Task<TokenValidationResult?> ValidateTokenAsync(string token)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                options.Value.SecretKey));
+            return await ValidateTokenAsync(token, key);
+        }
         public async Task<TokenValidationResult?> ValidatePasswordTokenAsync(string token)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
                 options.Value.SecretKeyForPasswordConfirmation));
             return await ValidateTokenAsync(token, key);
         }
-
         public async Task<TokenValidationResult?> ValidateEmailTokenAsync(string token)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
                 options.Value.SecretKeyForEmailConfirmation));
             return await ValidateTokenAsync(token, key);
         }
-
         private async Task<TokenValidationResult?> ValidateTokenAsync(string token, SymmetricSecurityKey key)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -39,6 +43,7 @@ namespace Infrastructure
             });
             return tokenValidationResult;
         }
+        
         public string GenerateToken(User user)
         {
             List<Claim> claims = [
@@ -58,7 +63,6 @@ namespace Infrastructure
                 claims
                 );
         }
-
         public string GenerateEmailConfirmationToken(User user)
         {
             var claims = new List<Claim>()

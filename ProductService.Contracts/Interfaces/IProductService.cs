@@ -13,5 +13,6 @@ namespace ProductService.Contracts.Interfaces
         Task<PagedResult<ProductDTO>> GetPagedResult(int page, int pageSize, CancellationToken ct);
         Task<List<ProductDTO>> GetByOwnerIdAsync(int id, CancellationToken ct);
         Task<List<int>> SetDeletedByOwnerIdAsync(int ownerId, bool isDeleted, CancellationToken ct);
+        Task<List<ProductDTO>> GetByFilterAsync(FilterProductDTO filterProduct, CancellationToken ct);
     }
 }

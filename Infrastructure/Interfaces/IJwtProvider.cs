@@ -7,6 +7,7 @@ namespace Infrastructure.Interfaces
     {
         string GenerateToken(User user);
         string GenerateEmailConfirmationToken(User user);
+        Task<TokenValidationResult?> ValidateTokenAsync(string token);
         Task<TokenValidationResult?> ValidatePasswordTokenAsync(string token);
         Task<TokenValidationResult?> ValidateEmailTokenAsync(string token);
         string GeneratePasswordRecoveryToken(User user);

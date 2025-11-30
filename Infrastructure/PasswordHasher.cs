@@ -9,7 +9,5 @@ namespace Infrastructure
 
         public bool Verify(string password, string passwordHash) => 
             BCrypt.Net.BCrypt.EnhancedVerify(password, passwordHash);
-
-
     }
 }

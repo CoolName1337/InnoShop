@@ -35,6 +35,14 @@ namespace ProductService.API.Controllers
             return Ok(res);
         }
 
+        [HttpPost("search")]
+        public async Task<IActionResult> GetByFilter([FromBody] FilterProductDTO filterProduct, CancellationToken ct)
+        {
+            var res = await productService.GetByFilterAsync(filterProduct, ct);
+
+            return Ok(res);
+        }
+
         /// <summary>Создаёт новый продукт.</summary>
         [HttpPost]
         [Authorize]
