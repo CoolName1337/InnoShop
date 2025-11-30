@@ -5,7 +5,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using UserService.DAL.Entities;
 
 namespace Infrastructure
 {
@@ -44,18 +43,13 @@ namespace Infrastructure
             return tokenValidationResult;
         }
         
-        public string GenerateToken(User user)
+        public string GenerateToken(string email, string userId, string role)
         {
             List<Claim> claims = [
-                new("userId", user.Id.ToString()),
-                new(ClaimTypes.Name, user.Name),
-                new(ClaimTypes.Role, user.Role.Name)
+                new("userId", userId),
+                new(ClaimTypes.Email, email),
+                new(ClaimTypes.Role, role)
             ];
-
-            foreach (var rp in user.Role.RolePermissions)
-            {
-                claims.Add(new("permission", rp.Permission.Name));
-            }
 
             return GenerateToken(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.Value.SecretKey)),
@@ -63,13 +57,13 @@ namespace Infrastructure
                 claims
                 );
         }
-        public string GenerateEmailConfirmationToken(User user)
+        public string GenerateEmailConfirmationToken(string email, string userId, string role)
         {
-            var claims = new List<Claim>()
-            {
-                new("userEmail", user.Email),
-                new("userId", user.Id.ToString())
-            };
+            List<Claim> claims = [
+                new("userId", userId),
+                new(ClaimTypes.Email, email),
+                new(ClaimTypes.Role, role)
+            ];
 
             return GenerateToken(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.Value.SecretKeyForEmailConfirmation)),
@@ -77,14 +71,13 @@ namespace Infrastructure
                 claims
                 );
         }
-        public string GeneratePasswordRecoveryToken(User user)
+        public string GeneratePasswordRecoveryToken(string email, string userId, string role)
         {
-            var claims = new List<Claim>()
-            {
-                new("userEmail", user.Email),
-                new("userId", user.Id.ToString())
-            };
-
+            List<Claim> claims = [
+                new("userId", userId),
+                new(ClaimTypes.Email, email),
+                new(ClaimTypes.Role, role)
+            ];
             return GenerateToken(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.Value.SecretKeyForPasswordConfirmation)),
                 DateTime.UtcNow.AddMinutes(options.Value.ExpireMinutesForPasswordConfirmation),

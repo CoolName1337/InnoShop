@@ -45,7 +45,7 @@ namespace Infrastructure.Tests
             Debug.WriteLine(user.Name + " " + user.Email);
             Debug.WriteLine(jwtOptions.SecretKey);
 
-            string token = jwtProvider.GenerateToken(user);
+            string token = jwtProvider.GenerateToken(user.Email, user.Id.ToString(), user.Role.Name);
 
             var result = await jwtProvider.ValidateTokenAsync(token);
 
@@ -58,7 +58,7 @@ namespace Infrastructure.Tests
             jwtOptions.ExpireHours = -20;
             jwtProvider = new JwtProvider(new OptionsWrapper<JwtOptions>(jwtOptions));
 
-            string token = jwtProvider.GenerateToken(user);
+            string token = jwtProvider.GenerateToken(user.Email, user.Id.ToString(), user.Role.Name);
 
             var result = await jwtProvider.ValidateTokenAsync(token);
 
@@ -69,7 +69,7 @@ namespace Infrastructure.Tests
         [TestMethod()]
         public async Task ValidateTokenAsyncTest_InvalidSignature_ReturnsInvalidResult()
         {
-            string token = jwtProvider.GenerateToken(user);
+            string token = jwtProvider.GenerateToken(user.Email, user.Id.ToString(), user.Role.Name);
 
             jwtOptions.SecretKey = "wrong_ssssss2fsafssssassssssssssssssfsssaffssssssssssssssssssssssssssfsfafasffafafa";
             jwtProvider = new JwtProvider(new OptionsWrapper<JwtOptions>(jwtOptions));

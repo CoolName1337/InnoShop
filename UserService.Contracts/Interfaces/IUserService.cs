@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using UserService.Contracts.DTOs;
+﻿using UserService.Contracts.DTOs;
 
 namespace UserService.Contracts.Interfaces
 {

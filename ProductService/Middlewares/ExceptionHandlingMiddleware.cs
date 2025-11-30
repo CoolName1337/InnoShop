@@ -19,7 +19,7 @@ namespace ProductService.API.Middlewares
             catch (UnauthorizedAccessException ex)
             {
                 logger.LogWarning("UNAUTHORIZED ACCESS: {Message}", ex.Message);
-                context.Response.StatusCode = StatusCodes.Status451UnavailableForLegalReasons;
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 await context.Response.WriteAsJsonAsync(new { error = ex.Message });
             }
             catch (Exception ex)

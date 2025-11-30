@@ -15,12 +15,13 @@ namespace ProductService.API.Extensions
         /// <param name="configuration">builder.Configuration чувак</param>
         public static IServiceCollection AddProductServices(this IServiceCollection services, IConfiguration configuration)
         {
+#if !TEST
             // Регистрируем DbContext
             services.AddDbContext<ProductDbContext>(opt =>
             {
                 opt.UseSqlServer(configuration.GetConnectionString("ProductsDb"));
             });
-            
+#endif     
             // Регистрируем репозитории
             services.AddScoped<IProductRepository, ProductRepository>();
             

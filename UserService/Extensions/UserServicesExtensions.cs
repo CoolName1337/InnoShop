@@ -21,12 +21,12 @@ namespace UserService.API.Extensions
             IConfiguration configuration)
         {
             services.AddScoped<IPasswordHasher, PasswordHasher>();
-
+#if !TEST
             services.AddDbContext<UserDbContext>(opt =>
             {
                 opt.UseSqlServer(configuration.GetConnectionString("UsersDb"));
             });
-
+#endif
             services.AddScoped<IUserRepository, UserRepository>();
 
             services.AddScoped<IRoleRepository, RoleRepository>();

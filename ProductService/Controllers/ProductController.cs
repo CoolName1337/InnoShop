@@ -26,9 +26,9 @@ namespace ProductService.API.Controllers
         {
             var res = await productService.GetByIdAsync(id, ct);
             return Ok(res);
-        }   
-        [HttpGet("/{ownerId}")]
-        public async Task<IActionResult> GetByOwnerId([FromRoute] int ownerId, CancellationToken ct)
+        }
+        [HttpGet("owner")]
+        public async Task<IActionResult> GetByOwnerId([FromQuery] int ownerId, CancellationToken ct)
         {
             var res = await productService.GetByOwnerIdAsync(ownerId, ct);
 

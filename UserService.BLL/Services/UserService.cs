@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Infrastructure;
 using Infrastructure.Interfaces;
 using Microsoft.Extensions.Logging;
 using UserService.BLL.Exceptions;
@@ -33,7 +32,7 @@ namespace UserService.BLL.Services
 
             if (!result) throw new FailedToLoginException("Invalid credentials");
 
-            var tokenString = jwtProvider.GenerateToken(user);
+            var tokenString = jwtProvider.GenerateToken(user.Email, user.Id.ToString(), user.Role.Name);
             tokenProvider.Token = tokenString;
 
             logger.LogInformation("[UserService]Login CORRECT {Email}", user.Email);
@@ -73,7 +72,7 @@ namespace UserService.BLL.Services
 
             if (user.IsEmailConfirmed) throw new FailedToSendEmail("Email is already confirmed");
 
-            var token = jwtProvider.GenerateEmailConfirmationToken(user);
+            var token = jwtProvider.GenerateEmailConfirmationToken(user.Email, user.Id.ToString(), user.Role.Name);
 
             link += $"?token={token}";
 
@@ -119,7 +118,7 @@ namespace UserService.BLL.Services
 
             if (user == null) throw new NotFoundUserException("Can't to send recovery message because user not found");
 
-            var token = jwtProvider.GeneratePasswordRecoveryToken(user);
+            var token = jwtProvider.GeneratePasswordRecoveryToken(user.Email, user.Id.ToString(), user.Role.Name);
 
             link += $"?token={token}";
 

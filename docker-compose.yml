@@ -1,0 +1,45 @@
+
+services:
+    userservice:
+        build: ./UserService
+        ports:
+            - "5001:80"
+        environment:
+             - ConnectionStrings__UsersDb=Server=usersdb;Database=UsersDb;User Id=sa;Password=Your_password123;
+        depends_on:
+            - usersdb
+
+    productservice:
+        build: ./ProductService
+        ports:
+            - "5002:80"
+        environment:
+             - ConnectionStrings__ProductsDb=Server=productsdb;Database=ProductsDb;User Id=sa;Password=Your_password123;
+        depends_on:
+            - productsdb
+
+    usersdb:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        container_name: usersdb
+        environment:
+            SA_PASSWORD: "Your_password123"
+            ACCEPT_EULA: "Y"
+        ports:
+            - "1434:1433"
+        volumes:
+            - users_data:/var/opt/mssql
+
+    productsdb:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        container_name: productsdb
+        environment:
+            SA_PASSWORD: "Your_password123"
+            ACCEPT_EULA: "Y"
+        ports:
+            - "1435:1433"
+        volumes:
+            - products_data:/var/opt/mssql
+
+volumes:
+  users_data:
+  products_data:

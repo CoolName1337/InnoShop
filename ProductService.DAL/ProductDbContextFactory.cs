@@ -5,16 +5,17 @@ namespace ProductService.DAL
 {
     public class ProductDbContextFactory : IDesignTimeDbContextFactory<ProductDbContext>
     {
+#if !TEST
         public ProductDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<ProductDbContext>();
 
-            optionsBuilder.UseSqlServer(
-                "Data Source=localhost\\SQLEXPRESS01;Database=ProductsDb;Integrated Security=True;Persist Security Info=False;" +
-                "Pooling=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Command Timeout=30"
-                );
+            var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__ProductsDb");
+
+            optionsBuilder.UseSqlServer(connectionString);
 
             return new ProductDbContext(optionsBuilder.Options);
         }
     }
+#endif
 }
