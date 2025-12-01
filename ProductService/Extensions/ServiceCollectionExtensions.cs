@@ -1,9 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductService.BLL;
+using ProductService.BLL.Validators;
 using ProductService.Contracts.Interfaces;
 using ProductService.DAL;
 using ProductService.DAL.Interfaces;
 using ProductService.DAL.Repositories;
+using Infrastructure.Extensions;
+
 
 namespace ProductService.API.Extensions
 {
@@ -15,6 +18,7 @@ namespace ProductService.API.Extensions
         /// <param name="configuration">builder.Configuration чувак</param>
         public static IServiceCollection AddProductServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddValidation(typeof(CreateProductValidator).Assembly);
 #if !TEST
             // Регистрируем DbContext
             services.AddDbContext<ProductDbContext>(opt =>

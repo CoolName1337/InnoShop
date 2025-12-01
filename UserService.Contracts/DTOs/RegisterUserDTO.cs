@@ -13,8 +13,6 @@ namespace UserService.Contracts.DTOs
         [EmailAddress]
         public string Email { get; set; }
         [Required]
-        //[RegularExpression(@"^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).+$",
-        //    ErrorMessage = "Password must contain an uppercase letter, a number, and a special character")]
         public string Password { get; set; }
     }
 }

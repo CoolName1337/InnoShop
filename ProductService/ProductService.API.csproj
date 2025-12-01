@@ -20,5 +20,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ProductService.BLL\ProductService.BLL.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\UserService.Contracts\UserService.Contracts.csproj" />
   </ItemGroup>
 </Project>

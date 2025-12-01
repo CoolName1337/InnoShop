@@ -1,12 +1,11 @@
 ﻿using Infrastructure;
+using Infrastructure.Extensions;
 using Infrastructure.Interfaces;
 using Infrastructure.Options;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using UserService.BLL;
 using UserService.BLL.Services;
+using UserService.BLL.Validators;
 using UserService.Contracts.Interfaces;
 using UserService.DAL;
 using UserService.DAL.Interfaces;
@@ -20,6 +19,8 @@ namespace UserService.API.Extensions
             this IServiceCollection services, 
             IConfiguration configuration)
         {
+            services.AddValidation(typeof(RegisterValidator).Assembly);
+
             services.AddScoped<IPasswordHasher, PasswordHasher>();
 #if !TEST
             services.AddDbContext<UserDbContext>(opt =>

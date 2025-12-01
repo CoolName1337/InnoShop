@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using FluentValidation;
+using System.Text.Json;
 using UserService.BLL.Exceptions;
 
 namespace UserService.API.Middlewares
@@ -27,6 +28,17 @@ namespace UserService.API.Middlewares
                 await context.Response.WriteAsync(result);
             }
 
+            catch (ValidationException ex)
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+
+                var result = JsonSerializer.Serialize(new
+                {
+                    error = "Validation error",
+                    errors = ex.Errors.Select(e=>e.ErrorMessage)
+                });
+                await context.Response.WriteAsync(result);
+            }
             catch (FailedToLoginException ex)
             {
                 _logger.LogError(ex.Message);

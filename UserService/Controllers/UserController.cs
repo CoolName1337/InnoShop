@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Infrastructure;
+using Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using UserService.Contracts.DTOs;
 using UserService.Contracts.Interfaces;
 
@@ -6,12 +8,17 @@ namespace UserService.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController(IUserService userService, LinkGenerator linkGenerator) : ControllerBase
+    public class UserController(
+        IUserService userService,
+        IValidationService validationService,
+        LinkGenerator linkGenerator) : ControllerBase
     {
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterUserDTO registerUser, CancellationToken ct)
         {
+            await validationService.ValidateAsync(registerUser);
+
             var userDto = await userService.Register(registerUser, ct);
 
             await SendConfirmation(userDto.Email, ct);
@@ -21,6 +28,8 @@ namespace UserService.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginUserDTO loginUser, CancellationToken ct)
         {
+            await validationService.ValidateAsync(loginUser);
+
             var token = await userService.Login(loginUser, ct);
 
             HttpContext.Response.Cookies.Append("nyam-nyam", token);
@@ -66,6 +75,8 @@ namespace UserService.API.Controllers
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO resetPassword, CancellationToken ct)
         {
+            await validationService.ValidateAsync(resetPassword);
+
             await userService.ResetPassword(resetPassword, ct);
 
             return Ok("Password reset");

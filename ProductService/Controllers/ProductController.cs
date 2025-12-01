@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Infrastructure;
+using Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.API.Extensions;
 using ProductService.Contracts.DTOs;
@@ -10,7 +12,10 @@ namespace ProductService.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductController(IProductService productService, ILogger<ProductController> logger) : ControllerBase
+    public class ProductController(
+        IProductService productService,
+        IValidationService validationService,
+        ILogger<ProductController> logger) : ControllerBase
     {
         /// <summary>Возвращает все продукты.</summary>
         [HttpGet]
@@ -38,6 +43,8 @@ namespace ProductService.API.Controllers
         [HttpPost("search")]
         public async Task<IActionResult> GetByFilter([FromBody] FilterProductDTO filterProduct, CancellationToken ct)
         {
+            await validationService.ValidateAsync(filterProduct);
+
             var res = await productService.GetByFilterAsync(filterProduct, ct);
 
             return Ok(res);
@@ -48,6 +55,8 @@ namespace ProductService.API.Controllers
         [Authorize]
         public async Task<IActionResult> PostAsync([FromBody] CreateProductDTO createProductDTO, CancellationToken ct)
         {
+            await validationService.ValidateAsync(createProductDTO);
+
             if (User.TryGetUserId(out int userId))
             {
                 var res = await productService.CreateAsync(createProductDTO, userId, ct);
@@ -64,6 +73,8 @@ namespace ProductService.API.Controllers
         [Authorize]
         public async Task<IActionResult> PatchAsync([FromBody] UpdateProductDTO updateProductDTO, CancellationToken ct)
         {
+            await validationService.ValidateAsync(updateProductDTO);
+
             if (User.TryGetUserId(out int userId))
             {
                 var res = await productService.UpdateAsync(updateProductDTO, userId, ct);

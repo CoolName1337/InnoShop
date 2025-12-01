@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Infrastructure;
 using Microsoft.Extensions.Logging;
 using ProductService.BLL.Exceptions;
 using ProductService.Contracts.DTOs;
@@ -12,7 +11,7 @@ namespace ProductService.BLL.Services
 {
     public class ProductService(
         IProductRepository productRepository,
-        IMapper mapper, 
+        IMapper mapper,
         ILogger<ProductService> logger) : IProductService
     {
         /// <summary>

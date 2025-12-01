@@ -1,15 +1,24 @@
-﻿using Infrastructure.Interfaces;
+﻿using FluentValidation;
+using Infrastructure.Interfaces;
 using Infrastructure.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
+using System.Reflection;
 using System.Text;
 
 namespace Infrastructure.Extensions
 {
     public static class ServiceCollectionExtensions
     {
+        public static IServiceCollection AddValidation(this IServiceCollection services, Assembly assembly)
+        {
+            services.AddValidatorsFromAssembly(assembly);
+            services.AddScoped<IValidationService, ValidationService>();
+            return services;
+        }
         public static IServiceCollection AddMyHttpClient(
             this IServiceCollection services, 
             IConfiguration configuration)
