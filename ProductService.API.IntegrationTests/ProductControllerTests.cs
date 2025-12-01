@@ -44,7 +44,6 @@ namespace ProductService.API.IntegrationTests
             });
             _jwtProvider = _webHost.Services.CreateAsyncScope().ServiceProvider.GetRequiredService<IJwtProvider>();
 
-            _client = _webHost.CreateClient();
         }
         [SetUp]
         public async Task Setup()
@@ -82,6 +81,8 @@ namespace ProductService.API.IntegrationTests
                 }];
             await dbContext.Products.AddRangeAsync(_products);
             await dbContext.SaveChangesAsync();
+
+            _client = _webHost.CreateClient();
         }
 
         [Test]

@@ -7,10 +7,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.Configure(builder.Configuration.GetSection("Kestrel"));
-});
+//builder.WebHost.ConfigureKestrel(options =>
+//{
+//    options.Configure(builder.Configuration.GetSection("Kestrel"));
+//});
+builder.WebHost.UseKestrel()
+    .UseUrls("http://+:5000");
 
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
@@ -38,7 +40,7 @@ app.UseCookiePolicy(new CookiePolicyOptions
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.MapControllers();
 

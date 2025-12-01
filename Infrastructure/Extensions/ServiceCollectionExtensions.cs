@@ -15,7 +15,7 @@ namespace Infrastructure.Extensions
             IConfiguration configuration)
         {
             services.AddSingleton<ITokenProvider, TokenProvider>();
-
+                
             services.AddTransient<AuthHeaderHandler>();
 
             services.AddHttpClient<MyHttpClient>(client => {

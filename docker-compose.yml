@@ -1,20 +1,43 @@
 
 services:
     userservice:
-        build: ./UserService
+        build: 
+            context: .
+            dockerfile: UserService/Dockerfile
         ports:
-            - "5001:80"
+            - "5003:5001"
         environment:
-             - ConnectionStrings__UsersDb=Server=usersdb;Database=UsersDb;User Id=sa;Password=Your_password123;
+            - ASPNETCORE_URLS=http://+:5001
+            - ProductService__BaseUrl=http://productservice:80
+            - ConnectionStrings__UsersDb=Server=usersdb;Database=UsersDb;User Id=sa;Password=Your_password123;
+            - Jwt__ExpireHours=${Jwt__ExpireHours}
+            - Jwt__ExpireMinutesForEmailConfirmation=${Jwt__ExpireMinutesForEmailConfirmation}
+            - Jwt__ExpireMinutesForPasswordConfirmation=${Jwt__ExpireMinutesForPasswordConfirmation}
+            - Jwt__SecretKey=${Jwt__SecretKey}
+            - Jwt__SecretKeyForEmailConfirmation=${Jwt__SecretKeyForEmailConfirmation}
+            - Jwt__SecretKeyForPasswordConfirmation=${Jwt__SecretKeyForPasswordConfirmation}
+            - Smtp__AppPassword=${Smtp__AppPassword}
+            - Smtp__Email=${Smtp__Email}
+            - Smtp__Host=${Smtp__Host}
+            - Smtp__Port=${Smtp__Port}
         depends_on:
             - usersdb
 
     productservice:
-        build: ./ProductService
+        build:
+            context: .
+            dockerfile: ProductService/Dockerfile
         ports:
-            - "5002:80"
+            - "5002:5000"
         environment:
-             - ConnectionStrings__ProductsDb=Server=productsdb;Database=ProductsDb;User Id=sa;Password=Your_password123;
+            - ASPNETCORE_URLS=http://+:5000
+            - ConnectionStrings__ProductsDb=Server=productsdb;Database=ProductsDb;User Id=sa;Password=Your_password123;
+            - Jwt__ExpireHours=${Jwt__ExpireHours}
+            - Jwt__ExpireMinutesForEmailConfirmation=${Jwt__ExpireMinutesForEmailConfirmation}
+            - Jwt__ExpireMinutesForPasswordConfirmation=${Jwt__ExpireMinutesForPasswordConfirmation}
+            - Jwt__SecretKey=${Jwt__SecretKey}
+            - Jwt__SecretKeyForEmailConfirmation=${Jwt__SecretKeyForEmailConfirmation}
+            - Jwt__SecretKeyForPasswordConfirmation=${Jwt__SecretKeyForPasswordConfirmation}
         depends_on:
             - productsdb
 

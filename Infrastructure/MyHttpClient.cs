@@ -1,5 +1,4 @@
 ﻿using System.Net.Http.Json;
-using System.Net.Http.Headers;
 namespace Infrastructure
 {
     public class MyHttpClient(HttpClient httpClient)

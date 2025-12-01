@@ -4,10 +4,14 @@ using UserService.Contracts.DTOs;
 using UserService.DAL.Interfaces;
 using UserService.Contracts.Interfaces;
 using Infrastructure;
+using Infrastructure.Interfaces;
 
 namespace UserService.BLL.Services
 {
-    public class AdminService(IUserRepository userRepository, IMapper mapper, MyHttpClient httpClient) : IAdminService
+    public class AdminService(
+        IUserRepository userRepository, 
+        IMapper mapper,
+        MyHttpClient httpClient) : IAdminService
     {
         public async Task<UserDTO> UpdateUserAsync(PatchUserDTO patchUser, CancellationToken ct = default)
         {

@@ -53,7 +53,6 @@ namespace UserService.API.IntegrationTests
                 "shi4"
             ];
             
-            _client = _webHost.CreateClient();
         }
         [SetUp]
         public async Task Setup()
@@ -111,6 +110,8 @@ namespace UserService.API.IntegrationTests
 
             await dbContext.Users.AddRangeAsync(_users);
             await dbContext.SaveChangesAsync();
+
+            _client = _webHost.CreateClient();
         }
 
         [Test]  
