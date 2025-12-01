@@ -10,9 +10,7 @@ namespace UserService.API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Policy = "AdminOnly")]
-    public class AdminController(
-        IAdminService adminService,
-        IValidationService validationService) : ControllerBase
+    public class AdminController(IAdminService adminService) : ControllerBase
     {
         [HttpGet("User")]
         public async Task<IActionResult> Get([FromQuery]bool includeInactive, CancellationToken ct)
@@ -33,8 +31,6 @@ namespace UserService.API.Controllers
         [HttpPatch("User")]
         public async Task<IActionResult> Patch([FromBody] PatchUserDTO patchUser, CancellationToken ct)
         {
-            await validationService.ValidateAsync(patchUser);
-
             var user = await adminService.UpdateUserAsync(patchUser, ct);
             
             return Ok(user);

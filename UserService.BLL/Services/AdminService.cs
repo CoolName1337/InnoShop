@@ -11,13 +11,14 @@ namespace UserService.BLL.Services
     public class AdminService(
         IUserRepository userRepository, 
         IMapper mapper,
+        IValidationService validationService,
         MyHttpClient httpClient) : IAdminService
     {
         public async Task<UserDTO> UpdateUserAsync(PatchUserDTO patchUser, CancellationToken ct = default)
         {
-            var user = await userRepository.GetByIdAsync(patchUser.Id, ct) ??
-                throw new NotFoundUserException($"Can't update user because user with id = {patchUser.Id} is not exist");
+            await validationService.ValidateAsync(patchUser);
 
+            var user = await userRepository.GetByIdAsync(patchUser.Id, ct);
             mapper.Map(patchUser, user);
 
             await userRepository.UpdateAsync(user, ct);

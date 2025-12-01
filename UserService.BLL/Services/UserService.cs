@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Infrastructure.Interfaces;
 using Microsoft.Extensions.Logging;
 using UserService.BLL.Exceptions;
@@ -12,6 +13,7 @@ namespace UserService.BLL.Services
     public class UserService(
         IUserRepository userRepository,
         IRoleRepository roleRepository,
+        IValidationService validationService,
         IPasswordHasher passwordHasher,
         IEmailService emailService,
         IJwtProvider jwtProvider,
@@ -21,16 +23,11 @@ namespace UserService.BLL.Services
     {
         public async Task<string> Login(LoginUserDTO loginUser, CancellationToken ct)
         {
+            await validationService.ValidateAsync(loginUser);
+
+            logger.LogInformation("[UserService]Login TRY {Email}", loginUser.Email);
+
             var user = await userRepository.GetByEmailAsync(loginUser.Email, ct);
-            if (user == null) throw new FailedToLoginException("Username or email non correct");
-
-            logger.LogInformation("[UserService]Login TRY {Email}", user.Email);
-
-            if (!user.IsEmailConfirmed) throw new FailedToLoginException("Email not vailidated");
-
-            var result = passwordHasher.Verify(loginUser.Password, user.PasswordHash);
-
-            if (!result) throw new FailedToLoginException("Invalid credentials");
 
             var tokenString = jwtProvider.GenerateToken(user.Email, user.Id.ToString(), user.Role.Name);
             tokenProvider.Token = tokenString;
@@ -41,10 +38,9 @@ namespace UserService.BLL.Services
 
         public async Task<UserDTO> Register(RegisterUserDTO registerUser, CancellationToken ct)
         {
-            logger.LogInformation("[UserService]Register TRY {Email}", registerUser.Email);
+            await validationService.ValidateAsync(registerUser);
 
-            var userWithEmail = await userRepository.GetByEmailAsync(registerUser.Email, ct);
-            if (userWithEmail != null) throw new FailedToRegisterException($"User with email:{userWithEmail.Email} is already exist");
+            logger.LogInformation("[UserService]Register TRY {Email}", registerUser.Email);
 
             var hashedPassword = passwordHasher.Generate(registerUser.Password);
 
@@ -66,9 +62,8 @@ namespace UserService.BLL.Services
         {
             logger.LogInformation("[UserService]SendConfirmationEmail TRY {email}", email);
 
-            var user = await userRepository.GetByEmailAsync(email, ct);
-
-            if (user == null) throw new NotFoundUserException("Can't to send confirmation message because user not found");
+            var user = await userRepository.GetByEmailAsync(email, ct) ??
+                throw new NotFoundUserException("Can't to send confirmation message because user not found");
 
             if (user.IsEmailConfirmed) throw new FailedToSendEmail("Email is already confirmed");
 
@@ -85,27 +80,19 @@ namespace UserService.BLL.Services
         {
             logger.LogInformation("[UserService]ConfirmEmail TRY");
 
-            var tokenRes = await jwtProvider.ValidateEmailTokenAsync(token)
-                ?? throw new FailedToValidate("Invalid or expired token");
-
+            var tokenRes = await jwtProvider.ValidateEmailTokenAsync(token);
             if (!tokenRes.IsValid)
-                throw tokenRes.Exception;
+                throw new ValidationException(tokenRes.Exception.Message);
 
             var userIdClaim = tokenRes.ClaimsIdentity.FindFirst("userId");
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
-            {
-                var user = await userRepository.GetByIdAsync(userId, ct);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                throw new ValidationException("UserId claim in token not found.");
 
-                if (user == null)
-                    throw new NotFoundUserException("Token non correct");
+            var user = await userRepository.GetByIdAsync(userId, ct)
+                ?? throw new ValidationException($"User with Id = {userId} not found.");
 
-                user.IsEmailConfirmed = true;
-                await userRepository.UpdateAsync(user, ct);
-            }
-            else
-            {
-                throw new FailedToValidate("UserId claim in token not found");
-            }
+            user.IsEmailConfirmed = true;
+            await userRepository.UpdateAsync(user, ct);
 
             logger.LogInformation("[UserService]ConfirmEmail CORRECT UserId:{userId}", userId);
         }
@@ -129,29 +116,24 @@ namespace UserService.BLL.Services
 
         public async Task ResetPassword(ResetPasswordDTO resetPassword, CancellationToken ct)
         {
+            await validationService.ValidateAsync(resetPassword);
+            
             logger.LogInformation("[UserService]RestorePassword TRY");
 
-            var tokenRes = await jwtProvider.ValidatePasswordTokenAsync(resetPassword.Token)
-                ?? throw new FailedToValidate("Invalid or expired token");
-
+            var tokenRes = await jwtProvider.ValidatePasswordTokenAsync(resetPassword.Token);
             if (!tokenRes.IsValid)
-                throw tokenRes.Exception;
+                throw new ValidationException(tokenRes.Exception.Message);
 
             var userIdClaim = tokenRes.ClaimsIdentity.FindFirst("userId");
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
-            {
-                var user = await userRepository.GetByIdAsync(userId, ct);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                throw new ValidationException("UserId claim in token not found.");
 
-                if (user == null)
-                    throw new NotFoundUserException("Token non correct");
+            var user = await userRepository.GetByIdAsync(userId, ct)
+                ?? throw new ValidationException($"User with Id = {userId} not found.");
 
-                user.PasswordHash = passwordHasher.Generate(resetPassword.NewPassword);
-                await userRepository.UpdateAsync(user, ct);
-            }
-            else
-            {
-                throw new FailedToValidate("UserId claim in token not found");
-            }
+            user.PasswordHash = passwordHasher.Generate(resetPassword.NewPassword);
+
+            await userRepository.UpdateAsync(user, ct);
 
             logger.LogInformation("[UserService]RestorePassword CORRECT UserId:{userId}", userId);
         }

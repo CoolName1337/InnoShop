@@ -1,14 +1,13 @@
 ﻿using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using UserService.BLL.Exceptions;
 using UserService.Contracts.DTOs;
+using UserService.DAL.Interfaces;
 
 namespace UserService.BLL.Validators
 {
     public class RegisterValidator : AbstractValidator<RegisterUserDTO>
     {
-        public RegisterValidator()
+        public RegisterValidator(IUserRepository userRepository)
         {
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Name is required.")
@@ -21,6 +20,18 @@ namespace UserService.BLL.Validators
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required.")
                 .MinimumLength(6).WithMessage("Password must be at least 6 characters long.");
+
+
+            RuleFor(x => x)
+                .CustomAsync(async (dto, context, ct) =>
+                {
+                    var userWithEmail = await userRepository.GetByEmailAsync(dto.Email, ct);
+                    if (userWithEmail != null)
+                    {
+                        context.AddFailure("Email", $"User with email : {userWithEmail.Email} is already exist.");
+                        return;
+                    }
+                });
         }
 
     }

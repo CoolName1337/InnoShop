@@ -13,6 +13,7 @@ namespace UserService.BLL.Validators
 
             RuleFor(x => x.Token)
                 .NotEmpty().WithMessage("Token is required.");
+
         }
     }
 }
